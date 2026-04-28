@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFT 202's Yelp Clone</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', Arial, sans-serif; background: #f0f2f5; color: #0C2255; line-height: 1.6; }
+
+        /* Navigation */
+        nav {
+            background: linear-gradient(135deg, #0C2255 0%, #005DAA 100%);
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            height: 60px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        nav a {
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95em;
+            transition: color 0.2s;
+            letter-spacing: 0.01em;
+        }
+        nav a:hover { color: #fff; }
+        nav .brand {
+            font-size: 1.25em;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.02em;
+        }
+
+        /* Layout */
+        .container { max-width: 920px; margin: 32px auto; padding: 0 20px; }
+
+        /* Typography */
+        h1 { font-size: 1.9em; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.03em; color: #0C2255; }
+        h2 { font-size: 1.35em; font-weight: 600; margin-bottom: 14px; letter-spacing: -0.02em; color: #0C2255; }
+        h3 { font-size: 1.1em; font-weight: 600; margin-bottom: 10px; color: #0C2255; }
+        .page-subtitle { color: #666F74; font-size: 0.95em; margin-bottom: 24px; }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 22px 24px;
+            margin-bottom: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .card-link .card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06);
+            transform: translateY(-2px);
+        }
+
+        /* Stars */
+        .stars { color: #F26822; font-weight: 600; }
+        .star-visual { color: #F26822; letter-spacing: 1px; font-size: 1.05em; }
+
+        /* Helpers */
+        .muted { color: #666F74; font-size: 0.88em; }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.78em;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+        .badge-cuisine {
+            background: #e8f0fa;
+            color: #005DAA;
+        }
+        .badge-reviews {
+            background: #fff3e6;
+            color: #FF8400;
+        }
+
+        /* Forms */
+        form label {
+            display: block;
+            margin-top: 14px;
+            font-weight: 600;
+            font-size: 0.88em;
+            color: #0C2255;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        form input, form textarea, form select {
+            width: 100%;
+            padding: 10px 14px;
+            margin-top: 6px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95em;
+            color: #0C2255;
+            background: #f8fafc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        form input:focus, form textarea:focus, form select:focus {
+            outline: none;
+            border-color: #005DAA;
+            box-shadow: 0 0 0 3px rgba(0,93,170,0.15);
+            background: white;
+        }
+        form textarea { resize: vertical; }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 10px 22px;
+            background: #F26822;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.92em;
+            font-weight: 600;
+            font-family: inherit;
+            margin-top: 16px;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+            letter-spacing: 0.01em;
+        }
+        .btn:hover {
+            background: #FF8400;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(242,104,34,0.3);
+        }
+        .btn:active { transform: translateY(0); }
+        .btn-outline {
+            background: transparent;
+            color: #005DAA;
+            border: 1.5px solid #005DAA;
+        }
+        .btn-outline:hover {
+            background: #e8f0fa;
+            box-shadow: none;
+        }
+
+        /* Price */
+        .price { color: #16a34a; font-weight: 600; }
+
+        /* Grid */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+        /* Details/Summary */
+        details.card { cursor: default; }
+        details summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: #005DAA;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        details summary::-webkit-details-marker { display: none; }
+        details summary::before { content: "+"; font-size: 1.2em; font-weight: 700; }
+        details[open] summary::before { content: "\2212"; }
+
+        /* Section divider */
+        .section { margin-top: 32px; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666F74;
+        }
+        .empty-state p { font-size: 1.05em; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a class="brand" href="/">INFT 202's Yelp Clone</a>
+        <a href="/">Restaurants</a>
+        <a href="/users">Users</a>
+    </nav>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

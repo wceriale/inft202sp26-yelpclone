@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="margin-bottom:24px;">
+    <a href="/users" class="muted" style="text-decoration:none;">&larr; Back to Users</a>
+</div>
+<h1>Add User</h1>
+<div class="card" style="max-width:560px;">
+    <form method="POST">
+        <label>Name</label>
+        <input type="text" name="name" required>
+        <label>Email</label>
+        <input type="email" name="email" required>
+        <button class="btn" type="submit">Add User</button>
+    </form>
+</div>
+{% endblock %}

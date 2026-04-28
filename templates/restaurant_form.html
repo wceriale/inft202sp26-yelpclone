@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="margin-bottom:24px;">
+    <a href="/" class="muted" style="text-decoration:none;">&larr; Back to Restaurants</a>
+</div>
+<h1>Add Restaurant</h1>
+<div class="card" style="max-width:560px;">
+    <form method="POST">
+        <label>Name</label>
+        <input type="text" name="name" required>
+        <label>Address</label>
+        <input type="text" name="address" required>
+        <label>Cuisine</label>
+        <input type="text" name="cuisine" required placeholder="e.g. Italian, Mexican, Sushi">
+        <button class="btn" type="submit">Add Restaurant</button>
+    </form>
+</div>
+{% endblock %}

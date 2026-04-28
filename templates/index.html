@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Restaurants</h1>
+<p class="page-subtitle">Discover great places to eat</p>
+
+<div class="section">
+{% if restaurants %}
+{% for r in restaurants %}
+<a class="card-link" href="/restaurants/{{ r.id }}">
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+            <div>
+                <h2 style="margin-bottom:6px;">{{ r.name }}</h2>
+                <p style="margin-bottom:8px;">
+                    <span class="badge badge-cuisine">{{ r.cuisine }}</span>
+                    <span class="muted" style="margin-left:8px;">{{ r.address }}</span>
+                </p>
+            </div>
+            <div style="text-align:right;">
+                {% if r.avg_rating %}
+                <p class="star-visual">
+                    {% for i in range(1, 6) %}{% if i <= r.avg_rating | round(0, 'floor') | int %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}
+                </p>
+                <p class="muted">{{ r.avg_rating }} / 5 &middot; {{ r.review_count }} review{{ 's' if r.review_count != 1 }}</p>
+                {% else %}
+                <span class="muted">No reviews yet</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</a>
+{% endfor %}
+{% else %}
+<div class="card empty-state">
+    <p>No restaurants yet. Add one above!</p>
+</div>
+{% endif %}
+
+<a class="btn" href="/restaurants/new">+ Add Restaurant</a>
+</div>
+{% endblock %}

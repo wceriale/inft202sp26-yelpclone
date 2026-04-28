@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Users</h1>
+<p class="page-subtitle">People in the community</p>
+
+<div class="section">
+{% if users %}
+{% for u in users %}
+<div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+    <div>
+        <strong style="font-size:1.05em;">{{ u.name }}</strong>
+        <span class="muted" style="margin-left:8px;">{{ u.email }}</span>
+    </div>
+    <span class="badge badge-reviews">{{ u.review_count }} review{{ 's' if u.review_count != 1 }}</span>
+</div>
+{% endfor %}
+{% else %}
+<div class="card empty-state">
+    <p>No users yet. Add one above!</p>
+</div>
+{% endif %}
+
+<a class="btn" href="/users/new">+ Add User</a>
+</div>
+{% endblock %}
