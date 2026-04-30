@@ -139,26 +139,26 @@ def seed():
     cur = conn.cursor()
 
     # Clear existing data
-    cur.execute("DELETE FROM reviews")
-    cur.execute("DELETE FROM menu_items")
-    cur.execute("DELETE FROM users")
-    cur.execute("DELETE FROM restaurants")
+    cur.execute("DELETE FROM review")
+    cur.execute("DELETE FROM menu_item")
+    cur.execute('DELETE FROM "user"')
+    cur.execute("DELETE FROM restaurant")
 
     # Insert restaurants
     for name, address in restaurants:
         cur.execute(
-            "INSERT INTO restaurants (name, address) VALUES (%s, %s)",
+            "INSERT INTO restaurant (name, address) VALUES (%s, %s)",
             (name, address),
         )
-    cur.execute("SELECT id, name FROM restaurants ORDER BY id")
+    cur.execute("SELECT id, name FROM restaurant ORDER BY id")
     restaurant_ids = {name: rid for rid, name in cur.fetchall()}
 
     # Insert users
     for name, email in users:
         cur.execute(
-            "INSERT INTO users (name, email) VALUES (%s, %s)", (name, email)
+            'INSERT INTO "user" (name, email) VALUES (%s, %s)', (name, email)
         )
-    cur.execute("SELECT id FROM users ORDER BY id")
+    cur.execute('SELECT id FROM "user" ORDER BY id')
     user_ids = [row[0] for row in cur.fetchall()]
 
     # Insert menu items
@@ -166,7 +166,7 @@ def seed():
         rid = restaurant_ids[rest_name]
         for item_name, desc, price in items:
             cur.execute(
-                "INSERT INTO menu_items (restaurant_id, name, description, price) VALUES (%s, %s, %s, %s)",
+                "INSERT INTO menu_item (restaurant_id, name, description, price) VALUES (%s, %s, %s, %s)",
                 (rid, item_name, desc, price),
             )
 
@@ -181,7 +181,7 @@ def seed():
             else:
                 comment = random.choice(okay_comments)
             cur.execute(
-                "INSERT INTO reviews (user_id, restaurant_id, rating, comment) VALUES (%s, %s, %s, %s)",
+                "INSERT INTO review (user_id, restaurant_id, rating, comment) VALUES (%s, %s, %s, %s)",
                 (uid, rid, rating, comment),
             )
 
@@ -189,20 +189,20 @@ def seed():
 
     # Print summary
     print("Seeded successfully!")
-    cur.execute("SELECT COUNT(*) FROM restaurants")
+    cur.execute("SELECT COUNT(*) FROM restaurant")
     print(f"  Restaurants: {cur.fetchone()[0]}")
-    cur.execute("SELECT COUNT(*) FROM users")
+    cur.execute('SELECT COUNT(*) FROM "user"')
     print(f"  Users:       {cur.fetchone()[0]}")
-    cur.execute("SELECT COUNT(*) FROM reviews")
+    cur.execute("SELECT COUNT(*) FROM review")
     print(f"  Reviews:     {cur.fetchone()[0]}")
-    cur.execute("SELECT COUNT(*) FROM menu_items")
+    cur.execute("SELECT COUNT(*) FROM menu_item")
     print(f"  Menu Items:  {cur.fetchone()[0]}")
 
     # Show avg ratings
     print("\nAverage Ratings:")
     cur.execute("""
         SELECT r.name, ROUND(AVG(rev.rating), 1) AS avg, COUNT(rev.id) AS cnt
-        FROM restaurants r LEFT JOIN reviews rev ON r.id = rev.restaurant_id
+        FROM restaurant r LEFT JOIN review rev ON r.id = rev.restaurant_id
         GROUP BY r.id ORDER BY avg DESC
     """)
     for row in cur.fetchall():

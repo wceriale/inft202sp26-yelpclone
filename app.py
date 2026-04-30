@@ -23,32 +23,32 @@ def init_db():
     conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor()
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS users (
+        CREATE TABLE IF NOT EXISTS "user" (
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
             email TEXT NOT NULL UNIQUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
-        CREATE TABLE IF NOT EXISTS restaurants (
+        CREATE TABLE IF NOT EXISTS restaurant (
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
             address TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
-        CREATE TABLE IF NOT EXISTS reviews (
+        CREATE TABLE IF NOT EXISTS review (
             id SERIAL PRIMARY KEY,
-            user_id INTEGER NOT NULL REFERENCES users(id),
-            restaurant_id INTEGER NOT NULL REFERENCES restaurants(id),
+            user_id INTEGER NOT NULL REFERENCES "user"(id),
+            restaurant_id INTEGER NOT NULL REFERENCES restaurant(id),
             rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
             comment TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
-        CREATE TABLE IF NOT EXISTS menu_items (
+        CREATE TABLE IF NOT EXISTS menu_item (
             id SERIAL PRIMARY KEY,
-            restaurant_id INTEGER NOT NULL REFERENCES restaurants(id),
+            restaurant_id INTEGER NOT NULL REFERENCES restaurant(id),
             name TEXT NOT NULL,
             description TEXT,
             price REAL NOT NULL
@@ -56,7 +56,7 @@ def init_db():
     """)
     # Drop the cuisine column if it still exists
     cur.execute("""
-        ALTER TABLE restaurants DROP COLUMN IF EXISTS cuisine;
+        ALTER TABLE restaurant DROP COLUMN IF EXISTS cuisine;
     """)
     conn.commit()
     cur.close()
@@ -70,12 +70,12 @@ def index():
     db = get_db()
     cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute("""
-        SELECT restaurants.*, ROUND(AVG(reviews.rating), 1) AS avg_rating,
-               COUNT(reviews.id) AS review_count
-        FROM restaurants
-        LEFT JOIN reviews ON restaurants.id = reviews.restaurant_id
-        GROUP BY restaurants.id
-        ORDER BY restaurants.name
+        SELECT restaurant.*, ROUND(AVG(review.rating), 1) AS avg_rating,
+               COUNT(review.id) AS review_count
+        FROM restaurant
+        LEFT JOIN review ON restaurant.id = review.restaurant_id
+        GROUP BY restaurant.id
+        ORDER BY restaurant.name
     """)
     restaurants = cur.fetchall()
     cur.close()
@@ -90,7 +90,7 @@ def new_restaurant():
         db = get_db()
         cur = db.cursor()
         cur.execute(
-            "INSERT INTO restaurants (name, address) VALUES (%s, %s)",
+            "INSERT INTO restaurant (name, address) VALUES (%s, %s)",
             (request.form["name"], request.form["address"]),
         )
         db.commit()
@@ -104,23 +104,23 @@ def show_restaurant(id):
     db = get_db()
     cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    cur.execute("SELECT * FROM restaurants WHERE id = %s", (id,))
+    cur.execute("SELECT * FROM restaurant WHERE id = %s", (id,))
     restaurant = cur.fetchone()
 
     cur.execute("""
-        SELECT reviews.*, users.name AS user_name
-        FROM reviews JOIN users ON reviews.user_id = users.id
-        WHERE reviews.restaurant_id = %s
-        ORDER BY reviews.created_at DESC
+        SELECT review.*, "user".name AS user_name
+        FROM review JOIN "user" ON review.user_id = "user".id
+        WHERE review.restaurant_id = %s
+        ORDER BY review.created_at DESC
     """, (id,))
     reviews = cur.fetchall()
 
     cur.execute(
-        "SELECT * FROM menu_items WHERE restaurant_id = %s ORDER BY name", (id,)
+        "SELECT * FROM menu_item WHERE restaurant_id = %s ORDER BY name", (id,)
     )
     menu_items = cur.fetchall()
 
-    cur.execute("SELECT * FROM users ORDER BY name")
+    cur.execute("SELECT * FROM \"user\" ORDER BY name")
     users = cur.fetchall()
 
     cur.close()
@@ -138,9 +138,9 @@ def list_users():
     db = get_db()
     cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute("""
-        SELECT users.*, COUNT(reviews.id) AS review_count
-        FROM users LEFT JOIN reviews ON users.id = reviews.user_id
-        GROUP BY users.id ORDER BY users.name
+        SELECT "user".*, COUNT(review.id) AS review_count
+        FROM "user" LEFT JOIN review ON "user".id = review.user_id
+        GROUP BY "user".id ORDER BY "user".name
     """)
     users = cur.fetchall()
     cur.close()
@@ -153,7 +153,7 @@ def new_user():
         db = get_db()
         cur = db.cursor()
         cur.execute(
-            "INSERT INTO users (name, email) VALUES (%s, %s)",
+            "INSERT INTO \"user\" (name, email) VALUES (%s, %s)",
             (request.form["name"], request.form["email"]),
         )
         db.commit()
@@ -169,7 +169,7 @@ def add_review(restaurant_id):
     db = get_db()
     cur = db.cursor()
     cur.execute(
-        "INSERT INTO reviews (user_id, restaurant_id, rating, comment) VALUES (%s, %s, %s, %s)",
+        "INSERT INTO review (user_id, restaurant_id, rating, comment) VALUES (%s, %s, %s, %s)",
         (
             request.form["user_id"],
             restaurant_id,
@@ -189,7 +189,7 @@ def add_menu_item(restaurant_id):
     db = get_db()
     cur = db.cursor()
     cur.execute(
-        "INSERT INTO menu_items (restaurant_id, name, description, price) VALUES (%s, %s, %s, %s)",
+        "INSERT INTO menu_item (restaurant_id, name, description, price) VALUES (%s, %s, %s, %s)",
         (
             restaurant_id,
             request.form["name"],
