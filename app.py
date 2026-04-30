@@ -19,48 +19,48 @@ def close_db(exception):
         db.close()
 
 
-def init_db():
-    conn = psycopg2.connect(DATABASE_URL)
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS "user" (
-            id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
+# def init_db():
+#     conn = psycopg2.connect(DATABASE_URL)
+#     cur = conn.cursor()
+#     cur.execute("""
+#         CREATE TABLE IF NOT EXISTS "user" (
+#             id SERIAL PRIMARY KEY,
+#             name TEXT NOT NULL,
+#             email TEXT NOT NULL UNIQUE,
+#             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+#         );
 
-        CREATE TABLE IF NOT EXISTS restaurant (
-            id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL,
-            address TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
+#         CREATE TABLE IF NOT EXISTS restaurant (
+#             id SERIAL PRIMARY KEY,
+#             name TEXT NOT NULL,
+#             address TEXT NOT NULL,
+#             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+#         );
 
-        CREATE TABLE IF NOT EXISTS review (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER NOT NULL REFERENCES "user"(id),
-            restaurant_id INTEGER NOT NULL REFERENCES restaurant(id),
-            rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
-            comment TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
+#         CREATE TABLE IF NOT EXISTS review (
+#             id SERIAL PRIMARY KEY,
+#             user_id INTEGER NOT NULL REFERENCES "user"(id),
+#             restaurant_id INTEGER NOT NULL REFERENCES restaurant(id),
+#             rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
+#             comment TEXT,
+#             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+#         );
 
-        CREATE TABLE IF NOT EXISTS menu_item (
-            id SERIAL PRIMARY KEY,
-            restaurant_id INTEGER NOT NULL REFERENCES restaurant(id),
-            name TEXT NOT NULL,
-            description TEXT,
-            price REAL NOT NULL
-        );
-    """)
-    # Drop the cuisine column if it still exists
-    cur.execute("""
-        ALTER TABLE restaurant DROP COLUMN IF EXISTS cuisine;
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
+#         CREATE TABLE IF NOT EXISTS menu_item (
+#             id SERIAL PRIMARY KEY,
+#             restaurant_id INTEGER NOT NULL REFERENCES restaurant(id),
+#             name TEXT NOT NULL,
+#             description TEXT,
+#             price REAL NOT NULL
+#         );
+#     """)
+#     # Drop the cuisine column if it still exists
+#     cur.execute("""
+#         ALTER TABLE restaurant DROP COLUMN IF EXISTS cuisine;
+#     """)
+#     conn.commit()
+#     cur.close()
+#     conn.close()
 
 
 # --- Routes ---
@@ -203,5 +203,5 @@ def add_menu_item(restaurant_id):
 
 
 if __name__ == "__main__":
-    init_db()
+    # init_db()
     app.run(debug=True)
