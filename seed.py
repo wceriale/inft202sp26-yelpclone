@@ -1,18 +1,18 @@
 """Seed the database with sample restaurants, users, reviews, and menu items."""
 
-import sqlite3
+import psycopg2
 import random
 
-DATABASE = "yelp_clone.db"
+DATABASE_URL = "postgresql://postgres.zhuidpxcrytshhsktygq:T6htZotVGYCwIBi6@aws-1-us-west-2.pooler.supabase.com:6543/postgres"
 
 # ── Restaurants near Bryant Park, NYC ─────────────────────────────────────────
 
 restaurants = [
-    ("Bryant Park Grill", "25 W 40th St, New York, NY 10018", "American"),
-    ("Keens Steakhouse", "72 W 36th St, New York, NY 10018", "Steakhouse"),
-    ("La Pecora Bianca", "20 W 40th St, New York, NY 10018", "Italian"),
-    ("The Kati Roll Company", "49 W 39th St, New York, NY 10018", "Indian"),
-    ("Ai Fiori", "400 Fifth Ave, New York, NY 10018", "Italian-French"),
+    ("Bryant Park Grill", "25 W 40th St, New York, NY 10018"),
+    ("Keens Steakhouse", "72 W 36th St, New York, NY 10018"),
+    ("La Pecora Bianca", "20 W 40th St, New York, NY 10018"),
+    ("The Kati Roll Company", "49 W 39th St, New York, NY 10018"),
+    ("Ai Fiori", "400 Fifth Ave, New York, NY 10018"),
 ]
 
 # ── 20 Users ──────────────────────────────────────────────────────────────────
@@ -135,9 +135,8 @@ okay_comments = [
 
 
 def seed():
-    db = sqlite3.connect(DATABASE)
-    db.execute("PRAGMA foreign_keys = ON")
-    cur = db.cursor()
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor()
 
     # Clear existing data
     cur.execute("DELETE FROM reviews")
@@ -146,74 +145,71 @@ def seed():
     cur.execute("DELETE FROM restaurants")
 
     # Insert restaurants
-    for name, address, cuisine in restaurants:
+    for name, address in restaurants:
         cur.execute(
-            "INSERT INTO restaurants (name, address, cuisine) VALUES (?, ?, ?)",
-            (name, address, cuisine),
+            "INSERT INTO restaurants (name, address) VALUES (%s, %s)",
+            (name, address),
         )
-    restaurant_ids = {
-        name: cur.execute(
-            "SELECT id FROM restaurants WHERE name = ?", (name,)
-        ).fetchone()[0]
-        for name, _, _ in restaurants
-    }
+    cur.execute("SELECT id, name FROM restaurants ORDER BY id")
+    restaurant_ids = {name: rid for rid, name in cur.fetchall()}
 
     # Insert users
     for name, email in users:
         cur.execute(
-            "INSERT INTO users (name, email) VALUES (?, ?)", (name, email)
+            "INSERT INTO users (name, email) VALUES (%s, %s)", (name, email)
         )
-    user_ids = list(
-        range(
-            cur.execute("SELECT MIN(id) FROM users").fetchone()[0],
-            cur.execute("SELECT MAX(id) FROM users").fetchone()[0] + 1,
-        )
-    )
+    cur.execute("SELECT id FROM users ORDER BY id")
+    user_ids = [row[0] for row in cur.fetchall()]
 
     # Insert menu items
     for rest_name, items in menu_items.items():
         rid = restaurant_ids[rest_name]
         for item_name, desc, price in items:
             cur.execute(
-                "INSERT INTO menu_items (restaurant_id, name, description, price) VALUES (?, ?, ?, ?)",
+                "INSERT INTO menu_items (restaurant_id, name, description, price) VALUES (%s, %s, %s, %s)",
                 (rid, item_name, desc, price),
             )
 
     # Insert reviews: ~4 per user (80 total across 5 restaurants)
-    # Each user reviews 4 random restaurants (no duplicates per user-restaurant)
     random.seed(42)
     for uid in user_ids:
         reviewed_restaurants = random.sample(list(restaurant_ids.values()), 4)
         for rid in reviewed_restaurants:
-            rating = random.choice([3, 3, 4, 4, 4, 4, 5, 5, 5, 5])  # weighted toward 4-5
+            rating = random.choice([3, 3, 4, 4, 4, 4, 5, 5, 5, 5])
             if rating >= 4:
                 comment = random.choice(positive_comments)
             else:
                 comment = random.choice(okay_comments)
             cur.execute(
-                "INSERT INTO reviews (user_id, restaurant_id, rating, comment) VALUES (?, ?, ?, ?)",
+                "INSERT INTO reviews (user_id, restaurant_id, rating, comment) VALUES (%s, %s, %s, %s)",
                 (uid, rid, rating, comment),
             )
 
-    db.commit()
+    conn.commit()
 
     # Print summary
     print("Seeded successfully!")
-    print(f"  Restaurants: {cur.execute('SELECT COUNT(*) FROM restaurants').fetchone()[0]}")
-    print(f"  Users:       {cur.execute('SELECT COUNT(*) FROM users').fetchone()[0]}")
-    print(f"  Reviews:     {cur.execute('SELECT COUNT(*) FROM reviews').fetchone()[0]}")
-    print(f"  Menu Items:  {cur.execute('SELECT COUNT(*) FROM menu_items').fetchone()[0]}")
+    cur.execute("SELECT COUNT(*) FROM restaurants")
+    print(f"  Restaurants: {cur.fetchone()[0]}")
+    cur.execute("SELECT COUNT(*) FROM users")
+    print(f"  Users:       {cur.fetchone()[0]}")
+    cur.execute("SELECT COUNT(*) FROM reviews")
+    print(f"  Reviews:     {cur.fetchone()[0]}")
+    cur.execute("SELECT COUNT(*) FROM menu_items")
+    print(f"  Menu Items:  {cur.fetchone()[0]}")
 
     # Show avg ratings
     print("\nAverage Ratings:")
-    for row in cur.execute("""
+    cur.execute("""
         SELECT r.name, ROUND(AVG(rev.rating), 1) AS avg, COUNT(rev.id) AS cnt
         FROM restaurants r LEFT JOIN reviews rev ON r.id = rev.restaurant_id
         GROUP BY r.id ORDER BY avg DESC
-    """).fetchall():
+    """)
+    for row in cur.fetchall():
         print(f"  {row[0]}: {row[1]}/5 ({row[2]} reviews)")
 
-    db.close()
+    cur.close()
+    conn.close()
 
 
 if __name__ == "__main__":
