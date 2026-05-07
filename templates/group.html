@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+{% if group %}
+<h1>{{ group.name }}</h1>
+<p class="page-subtitle">{{ users|length }} user{{ 's' if users|length != 1 }} in this group</p>
+
+<div class="section">
+{% if users %}
+{% for u in users %}
+<div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+    <div>
+        <strong style="font-size:1.05em;">{{ u.name }}</strong>
+        <span class="muted" style="margin-left:8px;">{{ u.email }}</span>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="card empty-state">
+    <p>No users in this group yet.</p>
+</div>
+{% endif %}
+
+<a class="btn btn-outline" href="/groups">&larr; Back to Groups</a>
+</div>
+{% else %}
+<h1>Group not found</h1>
+<p class="page-subtitle">This group doesn't exist.</p>
+<div class="section">
+    <a class="btn btn-outline" href="/groups">&larr; Back to Groups</a>
+</div>
+{% endif %}
+{% endblock %}

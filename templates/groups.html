@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Groups</h1>
+<p class="page-subtitle">Communities of users</p>
+
+<div class="section">
+{% if groups %}
+{% for g in groups %}
+<a class="card-link" href="/groups/{{ g.id }}">
+    <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+            <strong style="font-size:1.05em;">{{ g.name }}</strong>
+        </div>
+        <span class="badge badge-reviews">{{ g.user_count }} user{{ 's' if g.user_count != 1 }}</span>
+    </div>
+</a>
+{% endfor %}
+{% else %}
+<div class="card empty-state">
+    <p>No groups yet.</p>
+</div>
+{% endif %}
+</div>
+{% endblock %}

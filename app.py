@@ -162,6 +162,56 @@ def new_user():
     return render_template("user_form.html")
 
 
+# --- Groups ---
+
+@app.route("/groups")
+def list_groups():
+    db = get_db()
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    groups = []
+    try:
+        cur.execute("""
+            SELECT "group".id, "group".name,
+                   COUNT(user_group.id) AS user_count
+            FROM "group"
+            LEFT JOIN user_group ON "group".id = user_group.group_id
+            GROUP BY "group".id
+            ORDER BY "group".name
+        """)
+        groups = cur.fetchall()
+    except psycopg2.errors.UndefinedTable:
+        db.rollback()
+    finally:
+        cur.close()
+    return render_template("groups.html", groups=groups)
+
+
+@app.route("/groups/<int:id>")
+def show_group(id):
+    db = get_db()
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    group = None
+    users = []
+    try:
+        cur.execute("SELECT * FROM \"group\" WHERE id = %s", (id,))
+        group = cur.fetchone()
+
+        if group is not None:
+            cur.execute("""
+                SELECT "user".*
+                FROM "user"
+                JOIN user_group ON "user".id = user_group.user_id
+                WHERE user_group.group_id = %s
+                ORDER BY "user".name
+            """, (id,))
+            users = cur.fetchall()
+    except psycopg2.errors.UndefinedTable:
+        db.rollback()
+    finally:
+        cur.close()
+    return render_template("group.html", group=group, users=users, group_id=id)
+
+
 # --- Reviews ---
 
 @app.route("/restaurants/<int:restaurant_id>/reviews", methods=["POST"])
